@@ -48,6 +48,20 @@ from open_webui.storage.provider import Storage
 from open_webui.utils.auth import get_admin_user, get_verified_user
 from open_webui.utils.access_control import has_access
 
+# Cyrillic to Latin transliteration mapping (lowercase only, filename is lowercased before processing)
+CYRILLIC_TO_LATIN = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+    'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+    'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+    'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sc', 'ъ': '',
+    'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+}
+
+
+def transliterate_cyrillic(text: str) -> str:
+    """Transliterate Cyrillic characters to Latin equivalents."""
+    return ''.join(CYRILLIC_TO_LATIN.get(char, char) for char in text)
+
 from pydantic import BaseModel
 
 log = logging.getLogger(__name__)
@@ -193,7 +207,8 @@ def upload_file_handler(
 
     try:
         unsanitized_filename = file.filename
-        filename = os.path.basename(unsanitized_filename)
+        filename = os.path.basename(unsanitized_filename).lower().strip()
+        filename = transliterate_cyrillic(filename)
 
         file_extension = os.path.splitext(filename)[1]
         # Remove the leading dot from the file extension

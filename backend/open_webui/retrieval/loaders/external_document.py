@@ -1,4 +1,5 @@
 import requests
+from requests.adapters import HTTPAdapter, Retry
 import logging, os
 from typing import Iterator, List, Union
 from urllib.parse import quote
@@ -54,7 +55,17 @@ class ExternalDocumentLoader(BaseLoader):
             url = url[:-1]
 
         try:
-            response = requests.put(f"{url}/process", data=data, headers=headers)
+            with requests.Session() as session:
+                adapter = HTTPAdapter(max_retries=Retry(total=10, backoff_factor=0.1))
+                session.mount("http://", adapter)
+                session.mount("https://", adapter)
+
+                response = session.put(
+                    f"{url}/process", 
+                    data=data, 
+                    headers=headers,
+                    timeout=1200.0 # 20 minutes
+                )
         except Exception as e:
             log.error(f"Error connecting to endpoint: {e}")
             raise Exception(f"Error connecting to endpoint: {e}")
