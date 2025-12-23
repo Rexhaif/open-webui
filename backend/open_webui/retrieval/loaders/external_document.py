@@ -64,7 +64,7 @@ class ExternalDocumentLoader(BaseLoader):
                     f"{url}/process", 
                     data=data, 
                     headers=headers,
-                    timeout=1200.0 # 20 minutes
+                    timeout=3600.0 # 60 minutes
                 )
         except Exception as e:
             log.error(f"Error connecting to endpoint: {e}")
